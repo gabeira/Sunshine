@@ -1,13 +1,8 @@
 package com.example.android.sunshine;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.text.DateFormat;
-import java.util.Calendar;
 
 /**
  * Created by gabriel.b on 02-Dec-14.
@@ -22,19 +17,11 @@ public class WeatherDataParser {
      */
     public static double getMaxTemperatureForDay(String weatherJsonStr, int dayIndex)
             throws JSONException {
-        // TODO: add parsing code here
         JSONObject jsonObject = new JSONObject(weatherJsonStr);
         JSONArray jsonList = jsonObject.getJSONArray("list");
-
-        for (int i = 0; i < jsonList.length(); i++) {
-            JSONObject jo = jsonList.getJSONObject(i);
-            JSONObject jsonTemp = jo.getJSONObject("temp");
-            DateFormat dateFormat = DateFormat.getDateInstance();
-            Log.i("GETMAX", "Max:" + jsonTemp.getDouble("max")+" date: "+dateFormat.format(jo.getLong("dt")));
-        }
-
-
-        return -1;
+        JSONObject jo = jsonList.getJSONObject(dayIndex);
+        JSONObject jsonTemp = jo.getJSONObject("temp");
+        return jsonTemp.getDouble("max");
     }
 
 }
