@@ -22,14 +22,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Created by gabriel.b on 27-Nov-14.
  */
 public class ForecastFragment extends Fragment {
+
+    ArrayAdapter arrayAdapter;
 
     public ForecastFragment() {
     }
@@ -45,13 +49,11 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String[] weekForecast2 = {"asdf","dsaf"};
+        String[] hardCodedForecast = {"Mon, Jun 1 - Clear - 17/12", "Mon, Jun 2 - Clear - 18/13"};
 
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(weekForecast2));
-        weekForecast.add("Forecast 23 F");
-        weekForecast.add("Forecast 28 C");
+        List<String> weekForecast = new ArrayList<String>(Arrays.asList(hardCodedForecast));
 
-        ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity().getApplicationContext(),
+        arrayAdapter = new ArrayAdapter(getActivity().getApplicationContext(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textView,
                 weekForecast);
@@ -86,12 +88,12 @@ public class ForecastFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public class FetchWeatherTask extends AsyncTask<String,Void,Void>{
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
 
             if (params.length == 0 ){
                 return null;
@@ -105,14 +107,14 @@ public class ForecastFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
+            String units = "metric";
+            String format = "json";
+            int numDays = 7;
+
             try {
-                String units = "metric";
-                String format = "json";
-                int numDays = 7;
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-                URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
                 Uri.Builder builder = new Uri.Builder();
                 builder.scheme("http")
                         .authority("api.openweathermap.org")
@@ -125,12 +127,12 @@ public class ForecastFragment extends Fragment {
                         .appendQueryParameter("units", units)
                         .appendQueryParameter("cnt", Integer.toString(numDays))
                         .fragment("section-name");
-                String myUrl = builder.build().toString();
+                URL owUrl = new URL(builder.build().toString());
 
 
 
                 // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection = (HttpURLConnection) owUrl.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
@@ -156,11 +158,6 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-
-                try {
-                    WeatherDataParser.getMaxTemperatureForDay(forecastJsonStr, 7);
-                }catch (JSONException jse){}
-
                 Log.d("URL","forecastJsonStr: "+forecastJsonStr);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
@@ -179,7 +176,22 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
+
+
+            try {
+                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numDays);
+            }catch (JSONException jse){
+                Log.e(LOG_TAG, "Error:"+ jse.getLocalizedMessage());
+            }
+
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+            List<String> weekForecast = new ArrayList<String>(Arrays.asList(strings));
+            arrayAdapter.addAll(weekForecast);
         }
     }
 }
