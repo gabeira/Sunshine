@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class ForecastFragment extends Fragment {
 
-    ArrayAdapter arrayAdapter;
+    ArrayAdapter mForecastAdapter;
 
     public ForecastFragment() {
     }
@@ -48,18 +48,16 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        String[] hardCodedForecast = {"Mon, Jun 1 - Clear - 17/12", "Mon, Jun 2 - Clear - 18/13"};
-
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(hardCodedForecast));
-
-        arrayAdapter = new ArrayAdapter(getActivity().getApplicationContext(),
+        mForecastAdapter = new ArrayAdapter(getActivity().getApplicationContext(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textView,
-                weekForecast);
+                new ArrayList<String>(0));
 
-        ListView listView = (ListView) rootView.findViewById(R.id.listView_forecast);
-        listView.setAdapter(arrayAdapter);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        listView.setAdapter(mForecastAdapter);
+
+        FetchWeatherTask weatherWork = new FetchWeatherTask();
+        weatherWork.execute("94043");
 
         return rootView;
     }
@@ -81,7 +79,7 @@ public class ForecastFragment extends Fragment {
         if (id == R.id.action_refresh) {
             FetchWeatherTask weatherWork = new FetchWeatherTask();
             weatherWork.execute("94043");
-            Log.i(""," .    ");
+            Log.i("","Refresh...");
             return true;
         }
 
@@ -188,10 +186,13 @@ public class ForecastFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] strings) {
-            super.onPostExecute(strings);
-            List<String> weekForecast = new ArrayList<String>(Arrays.asList(strings));
-            arrayAdapter.addAll(weekForecast);
+        protected void onPostExecute(String[] result) {
+            if (result !=null) {
+                mForecastAdapter.clear();
+                for (String dayForecastStr : result) {
+                    mForecastAdapter.add(dayForecastStr);
+                }
+            }
         }
     }
 }
