@@ -7,10 +7,5 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_map"
-        android:orderInCategory="100"
-        android:title="@string/action_map"
-        android:icon="@android:drawable/ic_dialog_map"
-        app:showAsAction="ifRoom" />
+
 </menu>
